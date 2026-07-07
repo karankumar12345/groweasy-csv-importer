@@ -1,6 +1,6 @@
 # Dependencies
 frontend/node_modules/
-backend/node_modules/
+backendserver/node_modules/
 
 # Build
 frontend/.next/
@@ -17,6 +17,9 @@ pnpm-debug.log*
 frontend/.env
 frontend/.env.local
 frontend/.env.*
+backendserver/.env
+backendserver/.env.local
+backendserver/.env.*
 
 
 # OS
