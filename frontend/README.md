@@ -1,36 +1,220 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI CSV Importer Frontend
 
-## Getting Started
+Frontend application for the AI CSV Importer assignment built with **Next.js**, **TypeScript**, and **Tailwind CSS**.
 
-First, run the development server:
+---
+
+# Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- PapaParse
+- React Dropzone
+- React Hot Toast
+- Next Themes
+- Lucide React
+
+---
+
+# Project Setup
+
+## 1. Create Next.js Project
+
+```bash
+npx create-next-app@latest frontend
+```
+
+Select the following options:
+
+```
+✔ TypeScript → Yes
+✔ ESLint → Yes
+✔ Tailwind CSS → Yes
+✔ App Router → Yes
+✔ Turbopack → Yes
+```
+
+---
+
+## 2. Install Dependencies
+
+### Runtime Dependencies
+
+```bash
+npm install lucide-react next-themes papaparse react-dropzone react-hot-toast
+```
+
+### Type Definitions
+
+```bash
+npm install -D @types/papaparse
+```
+
+> The remaining development dependencies (`typescript`, `eslint`, `tailwindcss`, etc.) are installed automatically by Create Next App.
+
+---
+
+# Available Scripts
+
+Start development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Start production server
 
-## Learn More
+```bash
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+Run ESLint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+# Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+frontend/
+│
+├── app/
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── components/
+│   ├── CSVPreviewTable.tsx
+│   ├── CRMRecordTable.tsx
+│   ├── CsvUpload.tsx
+│   ├── Header.tsx
+│   ├── Modal.tsx
+│   ├── Pagination.tsx
+│   ├── TableScrollArea.tsx
+│   ├── UploadModal.tsx
+│   ├── theme-provider.tsx
+│   └── theme-toggle.tsx
+│
+├── public/
+├── package.json
+└── README.md
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+# Features
+
+- Drag & Drop CSV Upload
+- CSV Parsing using PapaParse
+- CSV Preview
+- Paginated Tables
+- AI Parsed CRM Records Preview
+- Success & Skipped Record Status
+- Reusable Modal Component
+- Responsive Design
+- Sticky Table Headers
+- Horizontal & Vertical Table Scroll
+- Dark / Light Theme
+- Toast Notifications
+
+---
+
+# Current Workflow
+
+```
+Upload CSV
+      │
+      ▼
+Parse CSV
+      │
+      ▼
+Preview Uploaded Data
+      │
+      ▼
+Confirm Import
+      │
+      ▼
+Display Parsed CRM Records (Mock Data)
+```
+
+---
+
+# Installed Packages
+
+## Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| next | React Framework |
+| react | UI Library |
+| react-dom | React DOM |
+| tailwindcss | Styling |
+| lucide-react | Icons |
+| papaparse | CSV Parsing |
+| react-dropzone | Drag & Drop Upload |
+| react-hot-toast | Toast Notifications |
+| next-themes | Dark / Light Theme |
+
+## Dev Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| typescript | TypeScript Support |
+| eslint | Linting |
+| eslint-config-next | Next.js ESLint Rules |
+| @types/node | Node.js Types |
+| @types/react | React Types |
+| @types/react-dom | React DOM Types |
+| @types/papaparse | PapaParse Types |
+| @tailwindcss/postcss | Tailwind PostCSS Plugin |
+
+---
+
+# Running the Project
+
+```bash
+git clone <repository-url>
+
+cd groweasy-csv-importer/frontend
+
+npm install
+
+npm run dev
+```
+
+Open your browser:
+
+```
+http://localhost:3000
+```
+
+---
+
+# Future Improvements
+
+- Backend Integration
+- AI Column Mapping
+- OpenAI API Integration
+- CSV Validation
+- Import Progress
+- Search & Filtering
+- Sorting
+- Export Results
+- Authentication
+
+---
+
+# Author
+
+**Karan Kumar**
