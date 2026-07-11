@@ -1,147 +1,95 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2, UploadCloud, FileSpreadsheet } from "lucide-react";
 import Header from "@/components/Header";
 import UploadModal from "@/components/UploadModal";
 import ParsedResultsTable, { ParsedCRMRecord } from "@/components/CRMRecordTable";
 
-// Production mock data reflecting the AI extraction schema requirements
-const MOCK_PARSED_RECORDS: ParsedCRMRecord[] = [
-  {
-    status: "success",
-    data: {
-      created_at: "2026-05-13 14:20:48",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      country_code: "+91",
-      mobile_without_country_code: "9876543210",
-      company: "GrowEasy",
-      city: "Mumbai",
-      state: "Maharashtra",
-      country: "India",
-      lead_owner: "test@gmail.com",
-      crm_status: "GOOD_LEAD_FOLLOW_UP",
-      crm_note: "Client is asking to reschedule demo",
-      data_source: null,
-      possession_time: null,
-      description: null,
-    },
-  },
-  {
-    status: "success",
-    data: {
-      created_at: "2026-05-13 14:25:30",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      country_code: "+91",
-      mobile_without_country_code: "9876543211",
-      company: "Tech Solutions",
-      city: "Bangalore",
-      state: "Karnataka",
-      country: "India",
-      lead_owner: "test@gmail.com",
-      crm_status: "DID_NOT_CONNECT",
-      crm_note: "Person was busy, will try again next week",
-      data_source: null,
-      possession_time: null,
-      description: null,
-    },
-  },
-  {
-    status: "skipped",
-    skipReason: "Missing primary phone number identity field mapping",
-    data: {
-      created_at: "2026-05-13 14:30:15",
-      name: "Rajesh Patel",
-      email: "rajesh.patel@example.com",
-      country_code: "+91",
-      mobile_without_country_code: "",
-      company: "Startup Inc",
-      city: "Delhi",
-      state: "Delhi",
-      country: "India",
-      lead_owner: "test@gmail.com",
-      crm_status: "BAD_LEAD",
-      crm_note: "Not interested in our services",
-      data_source: null,
-      possession_time: null,
-      description: null,
-    },
-  },
-  {
-    status: "success",
-    data: {
-      created_at: "2026-05-13 14:35:22",
-      name: "Priya Singh",
-      email: "priya.singh@example.com",
-      country_code: "+91",
-      mobile_without_country_code: "9876543213",
-      company: "Enterprise Corp",
-      city: "Pune",
-      state: "Maharashtra",
-      country: "India",
-      lead_owner: "test@gmail.com",
-      crm_status: "SALE_DONE",
-      crm_note: "Deal closed, onboarding in progress",
-      data_source: null,
-      possession_time: null,
-      description: null,
-    },
-  },
-];
-
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  // Dynamic pagination state configuration
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [parsedRecords, setParsedRecords] = useState<ParsedCRMRecord[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Toggle true once file processing pipeline finishes to display layout change
-  const hasData = MOCK_PARSED_RECORDS.length > 0;
+  const hasData = parsedRecords.length > 0;
 
   return (
-    <>
+<div className="flex h-screen w-screen flex-col bg-gray-50/50 text-gray-900 overflow-hidden dark:bg-zinc-950 dark:text-zinc-50">
+
       <Header />
 
-      <main className="mx-auto  p-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              AI CSV Importer
-            </h1>
-            <p className="mt-2 text-gray-500 dark:text-gray-400">
-              Upload any CSV and preview the data before importing.
-            </p>
-          </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition-colors"
-          >
-            Upload CSV
-          </button>
+      <main className="flex-1 overflow-y-auto px-4 py-10 sm:px-6 lg:px-8">
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 backdrop-blur-md transition-all">
+            <div className="mx-4 flex max-w-sm flex-col items-center rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50">
+                <Loader2 className="h-7 w-7 animate-spin text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold tracking-tight">
+                AI Processing in Progress
+              </h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
+                Extracting and mapping CRM fields from your CSV. Please wait...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Dashboard Header Banner */}
+        <div className="relative mb-10 overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
+          <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse" />
+                Powered by AI
+              </div>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                AI CSV Importer
+              </h1>
+              <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400 max-w-xl">
+                Upload any legacy or raw CSV. Our AI models will instantly parse, structure, and map data fields to your CRM schema perfectly.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+            >
+              <UploadCloud className="h-4 w-4" />
+              Upload CSV File
+            </button>
+          </div>
         </div>
 
-        {/* Conditional rendering view layer swap */}
+        {/* Data View Area */}
         {!hasData ? (
-          <div className="flex h-96 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-            <p className="text-gray-500 dark:text-gray-400 font-medium">
-              No CSV uploaded yet.
-            </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              Click the upload button to parse records with AI.
+          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 text-gray-400 dark:bg-zinc-800 dark:text-zinc-500">
+              <FileSpreadsheet className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-zinc-200">
+              No CSV uploaded yet
+            </h3>
+            <p className="mt-1 max-w-xs text-xs text-gray-400 dark:text-zinc-500">
+              Click the upload button above to select a file and begin AI-assisted mapping.
             </p>
           </div>
         ) : (
-          <ParsedResultsTable
-            records={MOCK_PARSED_RECORDS}
-            page={page}
-            limit={limit}
-            onPageChange={setPage}
-            onLimitChange={setLimit}
-          />
+          <div className="rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+            <ParsedResultsTable
+              records={parsedRecords}
+              page={page}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
+          </div>
         )}
 
         <UploadModal
@@ -149,8 +97,15 @@ export default function Home() {
           onClose={() => setIsModalOpen(false)}
           selectedFile={selectedFile}
           onFileSelect={setSelectedFile}
+          onImportSuccess={(records) => {
+            setParsedRecords(records);
+            setPage(1);
+            setIsModalOpen(false);
+          }}
+          setLoading={setLoading}
+          isImporting={loading}
         />
       </main>
-    </>
+    </div>
   );
 }
