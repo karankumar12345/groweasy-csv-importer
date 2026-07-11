@@ -20,6 +20,9 @@ frontend/.env.*
 backendserver/.env
 backendserver/.env.local
 backendserver/.env.*
+backendserver/src/.env
+backendserver/src/.env.local
+backendserver/src/.env.*
 
 
 # OS
