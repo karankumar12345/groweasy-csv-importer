@@ -1,18 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import Modal from "./Modal";
 import CSVUpload from "./CsvUpload";
 import CSVPreviewTable from "./CSVPreviewTable";
+import { ParsedCRMRecord } from "./CRMRecordTable";
+import { uploadCSV } from "@/services/csv.service";
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedFile: File | null;
   onFileSelect: (file: File) => void;
-  onConfirmImport: (rows: Record<string, any>[]) => void;
+  onImportSuccess: (records: ParsedCRMRecord[]) => void;
+  setLoading: (value: boolean) => void;
+  isImporting: boolean;
 }
 
 export default function UploadModal({
@@ -20,14 +25,15 @@ export default function UploadModal({
   onClose,
   selectedFile,
   onFileSelect,
-  onConfirmImport,
+  onImportSuccess,
+  setLoading,
+  isImporting,
 }: UploadModalProps) {
   const [headers, setHeaders] = useState<string[]>([]);
-  const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  // Reset modal state whenever it closes
   useEffect(() => {
     if (!isOpen) {
       setHeaders([]);
@@ -36,10 +42,9 @@ export default function UploadModal({
     }
   }, [isOpen]);
 
-  // Called by CSVUpload after parsing
   const handleFileUpload = (
     file: File,
-    parsedRows: Record<string, any>[],
+    parsedRows: Record<string, unknown>[],
     parsedHeaders: string[]
   ) => {
     onFileSelect(file);
@@ -48,59 +53,56 @@ export default function UploadModal({
     setPage(1);
   };
 
-  const handleConfirm = () => {
-    onConfirmImport(rows);
+  const handleConfirm = async () => {
+    if (!selectedFile || isImporting) return;
+
+    try {
+      setLoading(true);
+
+      const response = await uploadCSV(selectedFile);
+
+      if (!response.data?.length) {
+        toast.error("No records were extracted from the CSV");
+        return;
+      }
+
+      toast.success(response.message || "Import completed successfully");
+      onImportSuccess(response.data);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "CSV upload failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const hasData = rows.length > 0;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Upload CSV File"
-    >
+    <Modal isOpen={isOpen} onClose={isImporting ? () => {} : onClose} title="Upload CSV File">
       <div className="space-y-6">
-        {/* Upload Area */}
-        <CSVUpload onFileUpload={handleFileUpload} />
+        <CSVUpload onFileUpload={handleFileUpload} disabled={isImporting} />
 
-        {/* File Details */}
         {selectedFile && (
-          <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900/40 dark:bg-green-950/20">
             <div className="flex items-center gap-3">
-              <FileText
-                size={24}
-                className="text-green-600 dark:text-green-400"
-              />
+              <FileText size={24} className="text-green-600 dark:text-green-400" />
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-green-900 dark:text-green-200">
+              <div className="flex-1">
+                <p className="font-semibold truncate text-gray-900 dark:text-white">
                   {selectedFile.name}
                 </p>
-
-                <p className="text-sm text-green-700 dark:text-green-400">
-                  {(selectedFile.size / 1024).toFixed(2)} KB
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {(selectedFile.size / 1024).toFixed(2)} KB · {rows.length} rows
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* CSV Preview */}
         {hasData && (
-          <div className="border-t pt-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">
-                  CSV Preview
-                </h3>
-
-                <p className="text-sm text-gray-500">
-                  Showing {rows.length} records
-                </p>
-              </div>
-            </div>
-
+          <>
             <CSVPreviewTable
               headers={headers}
               rows={rows}
@@ -109,26 +111,40 @@ export default function UploadModal({
               onPageChange={setPage}
               onLimitChange={setLimit}
             />
-          </div>
-        )}
 
-        {/* Footer Buttons */}
-        {hasData && (
-          <div className="flex justify-end gap-3 border-t pt-5">
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </button>
+            {isImporting && (
+              <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+                <Loader2 className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
+                <div>
+                  <p className="font-medium text-indigo-900 dark:text-indigo-200">
+                    AI is extracting CRM fields...
+                  </p>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-400">
+                    Processing {rows.length} records in batches. This may take a moment.
+                  </p>
+                </div>
+              </div>
+            )}
 
-            <button
-              onClick={handleConfirm}
-              className="rounded-lg bg-red-600 px-5 py-2 font-medium text-white transition hover:bg-red-700"
-            >
-              Confirm Import
-            </button>
-          </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 dark:border-gray-700">
+              <button
+                onClick={onClose}
+                disabled={isImporting}
+                className="rounded-lg border border-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleConfirm}
+                disabled={isImporting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isImporting ? "Importing..." : "Confirm Import"}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </Modal>

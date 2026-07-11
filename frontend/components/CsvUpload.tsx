@@ -6,62 +6,46 @@ import { useDropzone } from "react-dropzone";
 
 
 interface CSVUploadProps {
-    onFileUpload: (
-        file: File,
-        rows: Record<string, any>[],
-        headers: string[]
-    ) => void;
+  onFileUpload: (
+    file: File,
+    rows: Record<string, unknown>[],
+    headers: string[]
+  ) => void;
+  disabled?: boolean;
 }
 
-
 export default function CSVUpload({
-    onFileUpload,
+  onFileUpload,
+  disabled = false,
 }: CSVUploadProps) {
+  const handleFile = (file: File) => {
+    if (disabled) return;
 
+    if (!file.name.endsWith(".csv")) {
+      alert("Only CSV files are allowed");
+      return;
+    }
 
-    const handleFile = (file: File) => {
-
-        if (!file.name.endsWith(".csv")) {
-            alert("Only CSV files are allowed");
+    import("papaparse").then((Papa) => {
+      Papa.default.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (result) => {
+          if (result.errors.length > 0) {
+            alert("Failed to parse CSV. Please check the file format.");
             return;
-        }
+          }
 
-
-        import("papaparse").then((Papa) => {
-
-            Papa.default.parse(file, {
-
-                header: true,
-
-                skipEmptyLines: true,
-
-                complete: (result) => {
-
-                    const data =
-                        result.data as Record<string, any>[];
-
-
-                    const headers =
-                        data.length
-                            ?
-                            Object.keys(data[0])
-                            :
-                            [];
-
-
-                    onFileUpload(
-                        file,
-                        data,
-                        headers
-                    );
-                }
-
-            });
-
-
-        });
-
-    };
+          const data = result.data as Record<string, unknown>[];
+          const headers = data.length ? Object.keys(data[0]) : [];
+          onFileUpload(file, data, headers);
+        },
+        error: () => {
+          alert("Failed to parse CSV. Please check the file format.");
+        },
+      });
+    });
+  };
 
 
 
@@ -86,17 +70,12 @@ export default function CSVUpload({
         isDragActive
 
     } = useDropzone({
-
         onDrop,
-
         accept: {
-            "text/csv": [
-                ".csv"
-            ]
+            "text/csv": [".csv"],
         },
-
-        multiple: false
-
+        multiple: false,
+        disabled,
     });
 
 
@@ -118,11 +97,10 @@ export default function CSVUpload({
             transition
 
             ${isDragActive
-                    ?
-                    "border-red-500 bg-red-50"
-                    :
-                    "border-gray-300 bg-gray-50"
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
                 }
+            ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
 
             dark:border-gray-700
             dark:bg-gray-800
